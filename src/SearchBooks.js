@@ -1,22 +1,21 @@
 import React, {Component} from 'react';
 import {Link} from 'react-router-dom';
+import {DebounceInput} from 'react-debounce-input';
+import PropTypes from 'prop-types';
 import * as BooksAPI from './BooksAPI';
 import Book from './Book';
 
 class SearchBooks extends Component{
+    static PropTypes = {
+        booksOnShelf: PropTypes.array.isRequired,
+        reloadShelves: PropTypes.func.isRequired
+    }
+
     state = {
-        booksOnShelf: [],
         query: '',
         searchedBooks: []
     }
-    
-    //Initialize the state with books currently on shelf.
-    componentDidMount(){
-        BooksAPI.getAll().then((booksOnShelf) => {
-            this.setState({booksOnShelf});
-        });
-    }
-
+        
     reloadList = (query) => {
         this.setState({ query: query.trim() });
         if(query.trim()){
@@ -36,19 +35,11 @@ class SearchBooks extends Component{
         }
     }
 
-    //When book shelf changes we need to update the state with the new info.
-    onChangeShelf = () => {
-        BooksAPI.getAll().then((booksOnShelf) => {
-			this.setState({booksOnShelf});
-        });
-        this.reloadList(this.state.query);
-    }
-
     //Update the book with its shelf info.
     updateShelfInfo = (book) => {
         book.shelf = 'none';
-        if(this.state.booksOnShelf && this.state.booksOnShelf.length) {
-            var bookFromShelf = this.state.booksOnShelf.filter((b) => b.id === book.id);
+        if(this.props.booksOnShelf && this.props.booksOnShelf.length) {
+            var bookFromShelf = this.props.booksOnShelf.filter((b) => b.id === book.id);
             if(bookFromShelf.length){
                 book.shelf = bookFromShelf[0].shelf;
             }
@@ -58,21 +49,16 @@ class SearchBooks extends Component{
 
     render(){
         const {query, searchedBooks} = this.state;
+        const {reloadShelves} = this.props;
 
         return(
             <div className="search-books">
                 <div className="search-books-bar">
                     <Link className="close-search" to="/">Close</Link>
                     <div className="search-books-input-wrapper">
-                        {/*
-                        NOTES: The search from BooksAPI is limited to a particular set of search terms.
-                        You can find these search terms here:
-                        https://github.com/udacity/reactnd-project-myreads-starter/blob/master/SEARCH_TERMS.md
-
-                        However, remember that the BooksAPI.search method DOES search by title or author. So, don't worry if
-                        you don't find a specific author or title. Every search is limited by search terms.
-                        */}
-                        <input 
+                        {/* Learning: https://www.npmjs.com/package/react-debounce-input */}
+                        <DebounceInput
+                            debounceTimeout={500} 
                             type="text" 
                             placeholder="Search by title or author"
                             value={query}
@@ -84,7 +70,7 @@ class SearchBooks extends Component{
                     <ol className="books-grid">
                         {searchedBooks.map((book) => (
                             <li key={book.id}>
-                                <Book book={book} onChangeShelf={this.onChangeShelf}/>
+                                <Book book={book} onChangeShelf={reloadShelves}/>
                             </li>
                         ))}
                     </ol>
