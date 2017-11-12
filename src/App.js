@@ -6,16 +6,12 @@ import AllShelves from './AllShelves';
 import './App.css';
 
 class BooksApp extends Component {
-  // Learning: Since constructor is doing the same thing as what componentDidMount would have done, 
-  // componentDidMount is not needed anymore.
-  constructor(){ 
-      // Learning: This is a must for constructor.
-      super(); 
-      this.reloadShelves();
-  }
-
   state = {
     books: []
+  }
+
+  componentDidMount = () => {
+    this.reloadShelves();
   }
 
   reloadShelves = () => {
@@ -27,9 +23,6 @@ class BooksApp extends Component {
   render() {
     return (
       <div className="app">
-        {/* Learning: when coming form search page "componentDidMount" is not invoked. 
-        "Router -> Refresh" can be called for reloading the page. 
-        However in this case its best to init the state in constructor */}
         <Route exact path="/" render={() => (
           <AllShelves 
             books={this.state.books}
